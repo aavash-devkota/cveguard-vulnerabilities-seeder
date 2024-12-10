@@ -20,12 +20,18 @@ import (
 var DOWNLOAD_ZIP_NAME string = "advisory-database.zip"
 
 func main() {
-	log.Println("[INFO] Downloading the advisory database zip file...")
-	err := downloadGHSAZip()
-	if err != nil {
-		log.Fatalln("\n[ERROR] Could not download the advisory database: " + err.Error())
+	toDownloadZip := os.Getenv("TO_DOWNLOAD_ZIP")
+
+	if strings.ToLower(toDownloadZip) != "false" {
+		log.Println("[INFO] Downloading the advisory database zip file...")
+		err := downloadGHSAZip()
+		if err != nil {
+			log.Fatalln("\n[ERROR] Could not download the advisory database: " + err.Error())
+		}
+		log.Println("\n[INFO] Download of the advisory database zip file is successful!")
+	} else {
+		log.Println("[WARN] The step to download the advisory database zip file is skipped due to the environment variable.")
 	}
-	log.Println("\n[INFO] Download of the advisory database zip file is successful!")
 
 	log.Println("[INFO] Seeding the database...")
 	seedToDatabase()
