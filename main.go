@@ -145,17 +145,46 @@ func seedToDatabase() {
 				cveId = &record.Aliases[0]
 			}
 
+			var packageId int
+			err = db.QueryRow(`
+				SELECT id FROM packages
+				WHERE name = ? AND ecosystem = ?;
+			`,
+				record.Affected[0].Package.Name,
+				"npm",
+			).Scan(&packageId)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					_, err := db.Exec(`
+							INSERT INTO packages (name, ecosystem) VALUES (?, ?);
+					`,
+						record.Affected[0].Package.Name,
+						"npm",
+					)
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					db.QueryRow(`
+						SELECT id FROM packages
+						WHERE name = ? AND ecosystem = ?;
+					`,
+						record.Affected[0].Package.Name,
+						"npm",
+					).Scan(&packageId)
+				}
+			}
+
 			_, err = db.Exec(`
 				INSERT INTO vulnerabilities
-				(cve_id, ghsa_id, ecosystem, name, introduced_version, fixed_version, details, published_at, modified_at) VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?, ?)
+				(cve_id, ghsa_id, package_id, introduced_version, fixed_version, details, published_at, modified_at) VALUES
+				(?, ?, ?, ?, ?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE
 				fixed_version = ?, modified_at = ?
 			`,
 				cveId,
 				record.ID,
-				record.Affected[0].Package.Ecosystem,
-				record.Affected[0].Package.Name,
+				packageId,
 				introducedVersion,
 				fixedVersion,
 				record.Details,
