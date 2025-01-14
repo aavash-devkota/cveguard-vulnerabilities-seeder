@@ -232,9 +232,6 @@ type Credit struct {
 //
 // See https://go.dev/security/vuln/database#schema.
 type DatabaseSpecific struct {
-	// The URL of the Go advisory for this vulnerability, of the form
-	// "https://pkg.go.dev/GO-YYYY-XXXX".
-	URL string `json:"url,omitempty"`
-	// The review status of this report (UNREVIEWED or REVIEWED).
-	ReviewStatus ReviewStatus `json:"review_status,omitempty"`
+	// The severity of the vulnerability
+	Severity string `json:"severity,omitempty"`
 }

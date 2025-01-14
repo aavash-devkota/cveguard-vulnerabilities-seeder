@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -177,8 +178,8 @@ func seedToDatabase() {
 
 			_, err = db.Exec(`
 				INSERT INTO vulnerabilities
-				(cve_id, ghsa_id, package_id, introduced_version, fixed_version, details, published_at, modified_at) VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?)
+				(cve_id, ghsa_id, package_id, introduced_version, fixed_version, details, severity, published_at, modified_at) VALUES
+				(?, ?, ?, ?, ?, ?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE
 				fixed_version = ?, modified_at = ?
 			`,
@@ -188,6 +189,7 @@ func seedToDatabase() {
 				introducedVersion,
 				fixedVersion,
 				record.Details,
+				slices.Index([]string{"LOW", "MODERATE", "HIGH", "CRITICAL"}, record.DatabaseSpecific.Severity)+1,
 				record.Published,
 				record.Modified,
 				// ON DUPLICATE
